@@ -8,7 +8,7 @@ load_dotenv()
 NUM_RUNS_TIMES = 5
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = "Don't give answer directly, think step by step"
 
 
 USER_PROMPT = """
@@ -58,11 +58,13 @@ def test_your_prompt(system_prompt: str) -> bool:
         output_text = response.message.content
         final_answer = extract_final_answer(output_text)
         if final_answer.strip() == EXPECTED_OUTPUT.strip():
+            print(f"Actual output: {output_text}")
             print("SUCCESS")
             return True
         else:
+            print(f"Extracted Answer: {final_answer}")
             print(f"Expected output: {EXPECTED_OUTPUT}")
-            print(f"Actual output: {final_answer}")
+            print(f"Actual output: {output_text}")
     return False
 
 
