@@ -70,7 +70,21 @@ TOOL_REGISTRY: Dict[str, Callable[..., str]] = {
 # ==========================
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = """You are a tool-calling assistant. You have access to the following tools:
+
+1. output_every_func_return_type
+   - Description: Return a newline-delimited list of "name: return_type" for each top-level function in a Python file.
+   - Parameters:
+     - file_path (str, optional): Path to the Python file to analyze. If not provided, analyzes the current file.
+
+When asked to call a tool, respond with ONLY a JSON object in the following format:
+{
+  "tool": "tool_name that you pick from the list above",
+  "args": {}
+}
+
+Do not include any other text, explanations, or markdown. Just the JSON object.
+"""
 
 
 def resolve_path(p: str) -> str:
@@ -104,7 +118,7 @@ def run_model_for_tool_call(system_prompt: str) -> Dict[str, Any]:
         model="llama3.1:8b",
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": "Call the tool now."},
+            {"role": "user", "content": "Call the tool now to return the function return types in this file."},
         ],
         options={"temperature": 0.3},
     )
@@ -141,7 +155,8 @@ def compute_expected_output() -> str:
 def test_your_prompt(system_prompt: str) -> bool:
     """Run once: require the model to produce a valid tool call; compare tool output to expected."""
     expected = compute_expected_output()
-    for _ in range(NUM_RUNS_TIMES):
+    for idx in range(NUM_RUNS_TIMES):
+        print(f"Running test {idx + 1} of {NUM_RUNS_TIMES}")
         try:
             call = run_model_for_tool_call(system_prompt)
         except Exception as exc:
@@ -155,7 +170,7 @@ def test_your_prompt(system_prompt: str) -> bool:
             continue
         if actual.strip() == expected.strip():
             print(f"Generated tool call: {call}")
-            print(f"Generated output: {actual}")
+            print(f"Generated output:\n{actual}")
             print("SUCCESS")
             return True
         else:
